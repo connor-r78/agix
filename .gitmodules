@@ -1,0 +1,3 @@
+[submodule "bitchat"]
+	path = bitchat
+	url = git@github.com:connor-r78/bitchat.git
