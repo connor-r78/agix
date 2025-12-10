@@ -7,22 +7,22 @@
 #define VGA_MEMORY 0xB8000
 
 enum vgaColor {
-  VGA_COLOR_BLACK = 0,
-  VGA_COLOR_BLUE = 1,
-  VGA_COLOR_GREEN = 2,
-  VGA_COLOR_CYAN = 3,
-  VGA_COLOR_RED = 4,
-  VGA_COLOR_MAGENTA = 5,
-  VGA_COLOR_BROWN = 6,
-  VGA_COLOR_LIGHT_GREY = 7,
-  VGA_COLOR_DARK_GREY = 8,
-  VGA_COLOR_LIGHT_BLUE = 9,
-  VGA_COLOR_LIGHT_GREEN = 10,
-  VGA_COLOR_LIGHT_CYAN = 11,
-  VGA_COLOR_LIGHT_RED = 12,
-  VGA_COLOR_LIGHT_MAGENTA = 13,
-  VGA_COLOR_LIGHT_BROWN = 14,
-  VGA_COLOR_WHITE = 15,
+  BLACK = 0,
+  BLUE = 1,
+  GREEN = 2,
+  CYAN = 3,
+  RED = 4,
+  MAGENTA = 5,
+  BROWN = 6,
+  LIGHT_GREY = 7,
+  DARK_GREY = 8,
+  LIGHT_BLUE = 9,
+  LIGHT_GREEN = 10,
+  LIGHT_CYAN = 11,
+  LIGHT_RED = 12,
+  LIGHT_MAGENTA = 13,
+  LIGHT_BROWN = 14,
+  WHITE = 15,
 };
 
 size_t terminalRow;
@@ -51,7 +51,7 @@ void terminalInitialize(void)
 {
   terminalRow = 0;
   terminalColumn = 0;
-  terminalColor = vgaEntryColor(VGA_COLOR_LIGHT_GREY, VGA_COLOR_BLACK);
+  terminalColor = vgaEntryColor(LIGHT_GREY, BLACK);
 
   for ( size_t y = 0; y < VGA_HEIGHT; ++y ) {
     for ( size_t x = 0; x < VGA_WIDTH; ++x ) {
@@ -79,7 +79,7 @@ void terminalPutChar(char c)
     ++terminalColumn;
     return;
   case '\a':
-    terminalSetColor(4);
+    terminalSetColor(RED);
     return;
   case '\t':
     for ( int i = 0; i < 8; ++i ) terminalPutChar(' ');
@@ -121,4 +121,6 @@ void terminalWriteString(const char* data)
 void kernel_main(void)
 {
   terminalInitialize();
+
+  terminalPutChar(ps2ReadScancode());
 }
