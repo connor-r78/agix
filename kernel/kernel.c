@@ -2,9 +2,13 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "../usr/include/io.h"
+
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 #define VGA_MEMORY 0xB8000
+
+extern char ps2Controller();
 
 enum vgaColor {
   BLACK = 0,
@@ -76,10 +80,23 @@ void terminalPutChar(char c)
 {
   switch ( c ) {
   case '\0':
-    ++terminalColumn;
     return;
   case '\a':
     terminalSetColor(RED);
+    return;
+  case '\b':
+    if ( terminalColumn > 0 ) {
+      --terminalColumn;
+      terminalPutChar(' ');
+      --terminalColumn;
+    }
+    else if ( terminalRow > 0 ) {
+      --terminalRow;
+      terminalColumn = 80;
+      terminalPutChar(' ');
+      --terminalRow;
+      terminalColumn = 80;
+    }
     return;
   case '\t':
     for ( int i = 0; i < 8; ++i ) terminalPutChar(' ');
@@ -122,5 +139,5 @@ void kernel_main(void)
 {
   terminalInitialize();
 
-  terminalPutChar(ps2ReadScancode());
+  while ( true ) terminalPutChar(ps2Controller());
 }
