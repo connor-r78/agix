@@ -8,7 +8,7 @@
 #define VGA_HEIGHT 25
 #define VGA_MEMORY 0xB8000
 
-extern char ps2Controller();
+extern uint16_t ps2Controller();
 
 enum vgaColor {
   BLACK = 0,
@@ -76,8 +76,9 @@ void terminalPutEntryAt(char c, uint8_t color, size_t x, size_t y)
   terminalBuffer[index] = vgaEntry(c, color);
 }
 
-void terminalPutChar(char c)
+void terminalPutChar(uint16_t char)
 {
+  c = char & 0b0000000011111111;
   switch ( c ) {
   case '\0':
     return;
