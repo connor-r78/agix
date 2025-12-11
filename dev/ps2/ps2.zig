@@ -1,7 +1,16 @@
 extern fn inb(port: u16) u8;
 extern fn printc(c: u8) void;
 
-fn convertToASCII(char: u8) u8 
+const left_alt: u16 = 0b1000000000000;
+const right_alt: u16 = 0b0100000000000;
+const left_ctrl: u16 = 0b0010000000000;
+const right_ctrl: u16 = 0b0001000000000;
+const left_shift: u16 = 0b0000100000000;
+const right_shift: u16 = 0b0000010000000;
+
+var ctrl: u16 = 0;
+
+fn convertToASCII(char: u16) u16
 {
   var ret: u8 = char;
   if ( char == 0x1 ) ret += 0x1A;
@@ -25,8 +34,10 @@ fn convertToASCII(char: u8) u8
   return ret;
 }
 
-export fn ps2Controller() u8 
+export fn ps2Controller() u16
 {
   while ( (inb(0x64) & 1) == 0 ) {}
-  return convertToASCII(inb(0x60));
+  var c: u16 = @intcast(convertToASCII(inb(0x60)));
+  c = c | ctrl;
+  return ;
 }
