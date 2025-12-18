@@ -8,7 +8,7 @@
 #define VGA_HEIGHT 25
 #define VGA_MEMORY 0xB8000
 
-extern char ps2Controller();
+extern uint16_t ps2Controller();
 
 enum vgaColor {
   BLACK = 0,
@@ -139,5 +139,11 @@ void kernel_main(void)
 {
   terminalInitialize();
 
-  while ( true ) terminalPutChar(ps2Controller());
+  while ( true ) {
+    unsigned short int ps2Ret = ps2Controller();
+    ps2Ret >>= 8;
+    unsigned char ascii = (unsigned char) ps2Ret;
+    ascii &= 0b01111111;
+    terminalPutChar(ascii); 
+  }
 }
