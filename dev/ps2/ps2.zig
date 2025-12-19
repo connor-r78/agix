@@ -85,6 +85,7 @@ export fn ps2Controller() u16
 {
   while ( (inb(0x64) & 1) == 0 ) {}
   var char: u16 = convertToASCII(inb(0x60));
+  char = keyboard(char);
   char <<= 8;
   char |= control; 
   return char;
