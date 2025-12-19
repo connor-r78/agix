@@ -1,6 +1,21 @@
+/* Agix Kernel
+   Copyright (C) 2025 Connor Rakov
+
+   This program is free software: you can redistribute it and/or modify
+   it under the terms of the GNU General Public License as published by
+   the Free Software Foundation, either version 3 of the License, or
+   (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+   GNU General Public License for more details.
+
+   You should have received a copy of the GNU General Public License
+   along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
 
 #include "../usr/include/io.h"
 
@@ -8,7 +23,7 @@
 #define VGA_HEIGHT 25
 #define VGA_MEMORY 0xB8000
 
-extern uint16_t ps2Controller();
+extern unsigned short ps2Controller();
 
 enum vgaColor {
   BLACK = 0,
@@ -31,17 +46,17 @@ enum vgaColor {
 
 size_t terminalRow;
 size_t terminalColumn;
-uint8_t terminalColor;
-uint16_t* terminalBuffer = (uint16_t*) VGA_MEMORY;
+unsigned char terminalColor;
+unsigned short* terminalBuffer = (unsigned short*) VGA_MEMORY;
 
-static inline uint8_t vgaEntryColor(enum vgaColor foreground, enum vgaColor background)
+static inline unsigned char vgaEntryColor(enum vgaColor foreground, enum vgaColor background)
 {
   return foreground | background << 4;
 }
 
-static inline uint16_t vgaEntry(unsigned char uc, uint8_t color)
+static inline unsigned short vgaEntry(unsigned char uc, unsigned char color)
 {
-  return (uint16_t) uc | (uint16_t) color << 8;
+  return (unsigned short) uc | (unsigned short) color << 8;
 }
 
 size_t strlen(const char* str)
@@ -70,7 +85,7 @@ void terminalSetColor(uint8_t color)
   terminalColor = color;
 }
 
-void terminalPutEntryAt(char c, uint8_t color, size_t x, size_t y)
+void terminalPutEntryAt(char c, unsigned char color, size_t x, size_t y)
 {
   const size_t index = y * VGA_WIDTH + x;
   terminalBuffer[index] = vgaEntry(c, color);
@@ -140,7 +155,7 @@ void kernel_main(void)
   terminalInitialize();
 
   while ( true ) {
-    unsigned short int ps2Ret = ps2Controller();
+    unsigned short ps2Ret = ps2Controller();
     ps2Ret >>= 8;
     unsigned char ascii = (unsigned char) ps2Ret;
     ascii &= 0b01111111;
