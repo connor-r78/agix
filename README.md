@@ -9,14 +9,14 @@ Agix is intended to be an agentic operating system done right (unlike Windows 11
 
 ## Why Zig?
 
-Zig might seem like a strange choice for a project of this scale as it is still yet to reach Major Version 1; alas, Zig has certain advantageo over other systems programming languages in this use case.
+Zig might seem like a strange choice for a project of this scale as it is still yet to reach Major Version 1; alas, Zig has certain advantages over other systems programming languages in this use case.
 
 In addition to having the most robust unit testing system in any language that I have seen:
 
 it is safer than C;
 it has a better community than C++;
 it has a community, unlike Ada and D;
-it hao better C FFI performance than Go;
+it has better C FFI performance than Go;
 it has compile-time execution unlike Pascal;
 and it has shorter compile times than Rust.
 
