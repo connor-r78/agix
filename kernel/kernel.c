@@ -19,6 +19,7 @@
 
 #include "../usr/include/io.h"
 
+#define DEFAULT_KEYBOARD "ansi-dvorak"
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 25
 #define VGA_MEMORY 0xB8000
@@ -44,6 +45,7 @@ enum vgaColor {
   WHITE = 15,
 };
 
+char* keyboard = DEFAULT_KEYBOARD;
 size_t terminalRow;
 size_t terminalColumn;
 unsigned char terminalColor;
