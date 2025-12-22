@@ -33,7 +33,10 @@ unsigned char inb(unsigned short port)
  
 int outb(unsigned short port, unsigned char val)
 {
-  __asm__ volatile ("outb %b0, %w1" : : "a" (val), "Nd" (port) : "memory");
+  __asm__ volatile ( "outb %b0, %w1" 
+    : 
+    : "a" (val), "Nd" (port) 
+    : "memory");
   return 0;
 }
 
@@ -48,4 +51,5 @@ int print(char* str, int length)
   for ( int i = 0; i < length; ++i ) {
     printc(str[i]);
   }
+  return 0;
 }

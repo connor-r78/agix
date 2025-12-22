@@ -1,5 +1,4 @@
 //! The PS/2 driver sends a 16-bit integer
-//! 
 //!
 //! Agix Kernel
 //! Copyright (C) 2025 Connor Rakov
