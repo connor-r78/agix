@@ -14,6 +14,9 @@
 //! You should have received a copy of the GNU General Public License
 //! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
+extern fn inb(port: u16) u8;
+extern fn outb(port: u16, val: u8) i32;
+
 const Superblock = struct {
   inodes: u32,
   blocks: u32,
@@ -56,7 +59,7 @@ const Superblock = struct {
   journalInode: u32,
   journalDev: u32,
   headOrphanInodes: u32,
-}
+};
 
 const Block = struct {
   addrBlockUsage: u32,
@@ -65,4 +68,16 @@ const Block = struct {
   unallocBlocks: u32,
   unallocInodes: u32,
   dirs: u32,
+};
+
+export fn finit() u8
+{
+  _ = outb(0x1F6, 0xA0);
+  _ = outb(0x1F2, 0x0);
+  _ = outb(0x1F3, 0x0);
+  _ = outb(0x1F4, 0x0);
+  _ = outb(0x1F5, 0x0);
+  _ = outb(0x1F7, 0xEC);
+  while ( inb(0x1F7) & 0b1000_0000 != 0 ) {}
+  return inb(0x1F7); 
 }

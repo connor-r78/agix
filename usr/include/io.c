@@ -12,15 +12,18 @@
    GNU General Public License for more details.
 
    You should have received a copy of the GNU General Public License
-   along with this program.  If not, see <https://www.gnu.org/licenses/>. */
+   along with this program.  If not, see <https://www.gnu.org/licenses/>. 
+
+   The I/O library is intended to be used by device drivers. It is the main 
+   method of gaining access to kernel space. */
 
 #include "io.h"
 
 extern void terminalPutChar(char c);
 
-uint8_t inb(uint16_t port)
+unsigned char inb(unsigned short port)
 {
-  uint8_t ret;
+  unsigned char ret;
   __asm__ volatile ( "inb %w1, %b0"
     : "=a" (ret)
     : "Nd" (port)
@@ -28,12 +31,21 @@ uint8_t inb(uint16_t port)
   return ret;
 }
  
-void outb(uint16_t port, uint8_t val)
+int outb(unsigned short port, unsigned char val)
 {
-   __asm__ volatile ("outb %b0, %w1" : : "a" (val), "Nd" (port) : "memory");
+  __asm__ volatile ("outb %b0, %w1" : : "a" (val), "Nd" (port) : "memory");
+  return 0;
 }
 
-void printc(char c)
+int printc(char c)
 {
   terminalPutChar(c);
+  return 0;
+}
+
+int print(char* str, int length)
+{
+  for ( int i = 0; i < length; ++i ) {
+    printc(str[i]);
+  }
 }
