@@ -1,69 +1,77 @@
 //! ext2 Driver
 //! Copyright (C) 2025 Connor Rakov
+//!
 //! This program is free software: you can redistribute it and/or modify
 //! it under the terms of the GNU General Public License as published by
 //! the Free Software Foundation, either version 3 of the License, or
 //! (at your option) any later version.
+//!
 //! This program is distributed in the hope that it will be useful,
 //! but WITHOUT ANY WARRANTY; without even the implied warranty of
 //! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //! GNU General Public License for more details.
+//!
 //! You should have received a copy of the GNU General Public License
 //! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 extern fn inb(port: u16) u8;
 extern fn outb(port: u16, val: u8) i32;
 
+const READ: u8 = 0;
+const WRITE: u8 = 1;
+
+const err = error{EINVAL};
+
 const Superblock = struct {
     inodes: u32,
     blocks: u32,
-    suBlocks: u32,
-    unAllocBlocks: u32,
-    unAllocInodes: u32,
-    superblockBlock: u32,
-    blockSizeLog: u32,
-    fragmentSizeLog: u32,
-    blocksPerGroup: u32,
-    fragmentsPerGroup: u32,
-    inodesPerGroup: u32,
-    lastMountTime: u32,
-    lastWrittenTime: u32,
-    mountsSinceCheck: u16,
-    mountsAllowedBeforeCheck: u16,
+    su_blocks: u32,
+    unalloc_blocks: u32,
+    unalloc_inodes: u32,
+    block: u32,
+    block_size_log: u32,
+    fragment_size_log: u32,
+    blocks_per_group: u32,
+    fragments_per_group: u32,
+    inodes_per_group: u32,
+    last_mount_time: u32,
+    last_written_time: u32,
+    mounts_since_check: u16,
+    mounts_allowed_before_check: u16,
     signature: u16,
     state: u16,
-    errorNowWhat: u16,
-    minorVersion: u16,
-    lastCheckTime: u32,
+    error_now_what: u16,
+    minor_version: u16,
+    last_check_time: u32,
     os: u32,
-    majorVersion: u32,
-    userID: u16,
-    groupID: u16,
+    major_version: u32,
+    user_id: u16,
+    group_id: u16,
 
-    firstNonreservedInode: u32,
-    inodeSize: u16,
-    blockGroup: u16,
-    optFeatures: u32,
-    reqFeatures: u32,
-    readonlyFeatures: u32,
+    first_nonreserved_inode: u32,
+    inode_size: u16,
+    block_group: u16,
+    opt_features: u32,
+    req_features: u32,
+    read_only_features: u32,
     blkid: [16]u8,
-    volName: [16]u8,
-    pathLastMounted: [64]u8,
-    compressionUsed: u32,
-    blocksToPreallocFiles: u8,
-    blocksToPreallocDirs: u8,
-    journalID: [16]u8,
-    journalInode: u32,
-    journalDev: u32,
-    headOrphanInodes: u32,
+    vol_name: [16]u8,
+    path_last_mounted: [64]u8,
+    compression_used: u32,
+    blocks_to_prealloc_files: u8,
+    blocks_to_prealloc_dirs: u8,
+    journal_id: [16]u8,
+    journal_inode: u32,
+    journal_dev: u32,
+    head_orphan_inodes: u32,
 };
 
 const Block = struct {
-    addrBlockUsage: u32,
-    addrInodeUsage: u32,
-    startingInodeAddr: u32,
-    unallocBlocks: u32,
-    unallocInodes: u32,
+    addr_block_usage: u32,
+    addr_inode_usage: u32,
+    starting_inode_addr: u32,
+    unalloc_blocks: u32,
+    unalloc_inodes: u32,
     dirs: u32,
 };
 
@@ -74,8 +82,7 @@ fn insw(port: u16, buffer: [*]u16, count: u32) void {
         : [port] "{dx}" (port),
           [buf] "{di}" (buffer),
           [cnt] "{cx}" (count),
-        : .{ .memory = true }
-    );
+        : .{ .memory = true });
 }
 
 export fn finit() u8 {
@@ -89,20 +96,29 @@ export fn finit() u8 {
     return inb(0x1F7);
 }
 
-export fn fread(lba: u8, sectorcount: u16) [*]u16 {
-    _ = outb(0x1F6, 0xE0);
+fn _fio(mode: u8, lba: u64, sectorcount: u16) ![*]u16 {
+    _ = outb(0x1F6, 0x40);
     _ = outb(0x1F2, @as(u8, @intCast(sectorcount >> 8)));
-    _ = outb(0x1F3, lba & 0b0000_1000);
-    _ = outb(0x1F4, lba & 0b0001_0000);
-    _ = outb(0x1F5, lba & 0b0010_0000);
-    _ = outb(0x1F2, @as(u8, @intCast(sectorcount & 0xFF_00)));
-    _ = outb(0x1F3, lba & 0b0000_0001);
-    _ = outb(0x1F4, lba & 0b0000_0010);
-    _ = outb(0x1F5, lba & 0b0000_0100);
-    _ = outb(0x1F7, 0x24);
+    _ = outb(0x1F3, @as(u8, @intCast(lba & 0xFF)));
+    _ = outb(0x1F4, @as(u8, @intCast((lba >> 8) & 0xFF)));
+    _ = outb(0x1F5, @as(u8, @intCast((lba >> 16) & 0xFF)));
+    _ = outb(0x1F2, @as(u8, @intCast(sectorcount & 0xFF)));
+    _ = outb(0x1F3, @as(u8, @intCast((lba >> 24) & 0xFF)));
+    _ = outb(0x1F4, @as(u8, @intCast((lba >> 32) & 0xFF)));
+    _ = outb(0x1F5, @as(u8, @intCast((lba >> 40) & 0xFF)));
+
+    _ = switch (mode) {
+        READ => outb(0x1F7, 0x24),
+        WRITE => outb(0x1F7, 0x34),
+        else => return err.EINVAL,
+    };
 
     var buf: [256]u16 = undefined;
     insw(0x1F0, &buf, 256);
 
     return &buf;
+}
+
+export fn fio(mode: u8, lba: u64, sectorcount: u16) ?[*]u16 {
+    return _fio(mode, lba, sectorcount) catch null;
 }

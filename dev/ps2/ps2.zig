@@ -1,18 +1,15 @@
-//! The PS/2 driver sends a 16-bit integer
-//!
 //! Agix Kernel
 //! Copyright (C) 2025 Connor Rakov
-
 //! This program is free software: you can redistribute it and/or modify
 //! it under the terms of the GNU General Public License as published by
 //! the Free Software Foundation, either version 3 of the License, or
 //! (at your option) any later version.
-
+//!
 //! This program is distributed in the hope that it will be useful,
 //! but WITHOUT ANY WARRANTY; without even the implied warranty of
 //! MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 //! GNU General Public License for more details.
-
+//!
 //! You should have received a copy of the GNU General Public License
 //! along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
@@ -23,86 +20,82 @@ extern fn printc(c: u8) void;
 
 var control: u16 = 0b0000_0000;
 
-fn setControl(char: u16) u16
-{
-  control |= char;
-  return 0;
+fn setControl(char: u16) u16 {
+    control |= char;
+    return 0;
 }
 
-fn clearControl(char: u16) u16
-{
-  control ^= char;
-  return 0;
+fn clearControl(char: u16) u16 {
+    control ^= char;
+    return 0;
 }
 
-fn convertToASCII(char: u16) u16
-{
-  var ret: u16 = char;
-  var released = false;
-  if ( char >= 0x81 and char <= 0xD8 ) {
-    ret -= 80;
-    released = true;
-  }
+fn convertToASCII(char: u16) u16 {
+    var ret: u16 = char;
+    var released = false;
+    if (char >= 0x81 and char <= 0xD8) {
+        ret -= 80;
+        released = true;
+    }
 
-  ret = switch ( ret ) {
-    0x1 => ret + 0x1A,
-    0x2...0xA => ret + 0x2F,
-    0xB => ret + 0x25,
-    0xC => ret + 0x21,
-    0xD => ret + 0x30,
-    0xE...0xF => ret - 0x6,
-    0x10 => 0x71,
-    0x11 => 0x77,
-    0x12 => 0x65,
-    0x13 => 0x72,
-    0x14 => 0x74,
-    0x15 => 0x79,
-    0x16 => 0x75,
-    0x17 => 0x69,
-    0x18 => 0x6F,
-    0x19 => 0x70,
-    0x1A => 0x5B,
-    0x1B => 0x5D,
-    0x1C => 0xA,
-    0x1D => setControl(0b10),
-    0x1E => 0x61,
-    0x1F => 0x73,
-    0x20 => 0x64,
-    0x21 => 0x66,
-    0x22 => 0x76,
-    0x23 => 0x68,
-    0x24 => 0x6A,
-    0x25 => 0x6B,
-    0x26 => 0x6C,
-    0x27 => 0x3B,
-    0x28 => 0x27,
-    0x29 => 0x60,
-    0x2A => setControl(0b1000),
-    0x2B => 0x5C,
-    0x2C => 0x7A,
-    0x2D => 0x78,
-    0x2E => 0x63,
-    0x2F => 0x76,
-    0x30 => 0x62,
-    0x31 => 0x6E,
-    0x32 => 0x6D,
-    0x33 => 0x2C,
-    0x34 => 0x2E,
-    0x35 => 0x2F,
-    0x36 => setControl(0b0100), 
-    else => 0,
-  };
+    ret = switch (ret) {
+        0x1 => ret + 0x1A,
+        0x2...0xA => ret + 0x2F,
+        0xB => ret + 0x25,
+        0xC => ret + 0x21,
+        0xD => ret + 0x30,
+        0xE...0xF => ret - 0x6,
+        0x10 => 0x71,
+        0x11 => 0x77,
+        0x12 => 0x65,
+        0x13 => 0x72,
+        0x14 => 0x74,
+        0x15 => 0x79,
+        0x16 => 0x75,
+        0x17 => 0x69,
+        0x18 => 0x6F,
+        0x19 => 0x70,
+        0x1A => 0x5B,
+        0x1B => 0x5D,
+        0x1C => 0xA,
+        0x1D => setControl(0b10),
+        0x1E => 0x61,
+        0x1F => 0x73,
+        0x20 => 0x64,
+        0x21 => 0x66,
+        0x22 => 0x76,
+        0x23 => 0x68,
+        0x24 => 0x6A,
+        0x25 => 0x6B,
+        0x26 => 0x6C,
+        0x27 => 0x3B,
+        0x28 => 0x27,
+        0x29 => 0x60,
+        0x2A => setControl(0b1000),
+        0x2B => 0x5C,
+        0x2C => 0x7A,
+        0x2D => 0x78,
+        0x2E => 0x63,
+        0x2F => 0x76,
+        0x30 => 0x62,
+        0x31 => 0x6E,
+        0x32 => 0x6D,
+        0x33 => 0x2C,
+        0x34 => 0x2E,
+        0x35 => 0x2F,
+        0x36 => setControl(0b0100),
+        else => 0,
+    };
 
-  if ( released ) ret |= 0b1000_0000;
-  return ret;
+    if (released) ret |= 0b1000_0000;
+    return ret;
 }
 
-export fn ps2Controller() u16
-{
-  while ( (inb(0x64) & 1) == 0 ) {}
-  var char: u16 = convertToASCII(inb(0x60));
-  char = Keyboards.keyboard(char);
-  char <<= 8;
-  char |= control; 
-  return char;
+export fn ps2Controller() u16 {
+    while ((inb(0x64) & 1) == 0) {}
+    var char: u16 = convertToASCII(inb(0x60));
+    char = Keyboards.keyboard(char);
+    char <<= 8;
+    char |= control;
+    return char;
 }
