@@ -1,4 +1,9 @@
-To compile the operating system and open it in QEMU, run `kernel/compile.zsh`
+To compile the operating system and open it in QEMU, run 
+```
+cd kernel
+./compile.zsh
+./qemu.zsh
+```
 
 Agix is intended to be an agentic operating system done right (unlike Windows 11). In order to accomplish that it does the following:
 
